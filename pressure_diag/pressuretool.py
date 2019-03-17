@@ -1,6 +1,6 @@
 import numpy as np
 
-class pressure_diag():
+class pycles_pressure_diag():
     def __init__(self,statsdata,alpha_b=1.0/3,alpha_d=0.375,r_d=500):
         self.alpha_b = alpha_b
         self.alpha_d = alpha_d
@@ -12,6 +12,7 @@ class pressure_diag():
         self.updraft_w = statsdata.groups['profiles']['updraft_w']
         self.env_w = statsdata.groups['profiles']['env_w']
         self.updraft_b = statsdata.groups['profiles']['updraft_b']
+        self.buoyancy_mean = statsdata.groups['profiles']['buoyancy_mean']
         self.rho0 = statsdata.groups['reference']['rho0']
 
     def mean_pz_sink(self):
@@ -24,4 +25,6 @@ class pressure_diag():
                self.rho0*np.sqrt(self.updraft_fraction[:])/self.r_d
 
     def pressure_buoy(self):
-        return -self.alpha_b*self.rho0[:]*self.updraft_fraction[:]*self.updraft_b[:]
+        return -self.alpha_b*self.rho0[:]*self.updraft_fraction[:]*(self.updraft_b[:]-self.buoyancy_mean[:])
+
+
