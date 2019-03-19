@@ -16,10 +16,10 @@ class pycles_pressure_diag():
         self.rho0 = statsdata.groups['reference']['rho0']
 
     def avgp_z(self):
-        return np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, z)
+        return np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, self.z)
 
     def fraction_z(self):
-        return np.apply_along_axis(np.gradient, 1, self.updraft_fraction, z)
+        return np.apply_along_axis(np.gradient, 1, self.updraft_fraction, self.z)
 
     def mean_pz_sink(self):
         # one last term regarding the interface mean pressure is missing temporarily
