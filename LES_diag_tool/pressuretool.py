@@ -5,9 +5,12 @@ class pycles_pressure_diag():
         self.alpha_b = alpha_b
         self.alpha_d = alpha_d
         self.r_d = r_d
+        self.statsdata = statsdata
+
         self.t = [it.data.tolist() for it in statsdata.groups['timeseries']['t']]
         self.z = [iz.data.tolist() for iz in statsdata.groups['reference']['z']]
-        self.updraft_dyn_pressure = statsdata.groups['profiles']['updraft_dyn_pressure']
+
+        # self.updraft_dyn_pressure = statsdata.groups['profiles']['updraft_dyn_pressure']
         self.updraft_fraction = statsdata.groups['profiles']['updraft_fraction']
         self.updraft_w = statsdata.groups['profiles']['updraft_w']
         self.env_w = statsdata.groups['profiles']['env_w']
@@ -16,7 +19,8 @@ class pycles_pressure_diag():
         self.rho0 = statsdata.groups['reference']['rho0']
 
     def avgp_z(self):
-        return np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, self.z)
+        updraft_dyn_pressure = self.statsdata.groups['profiles']['updraft_dyn_pressure'][:].data
+        return np.apply_along_axis(np.gradient, 1, updraft_dyn_pressure, self.z)
 
     def fraction_z(self):
         return np.apply_along_axis(np.gradient, 1, self.updraft_fraction, self.z)
