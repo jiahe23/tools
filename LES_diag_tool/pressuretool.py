@@ -15,16 +15,16 @@ class pycles_pressure_diag():
         self.buoyancy_mean = statsdata.groups['profiles']['buoyancy_mean']
         self.rho0 = statsdata.groups['reference']['rho0']
 
-    def pertpress_avgp_z(self):
-        avgp_z = np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, z)
-        return -(self.updraft_fraction * avgp_z)
+    def avgp_z(self):
+        return np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, z)
 
-    def pertpress_fraction_z(self):
-        a_z = np.apply_along_axis(np.gradient, 1, self.updraft_fraction, z)
-        return self.updraft_dyn_pressure * a_z
+    def fraction_z(self):
+        return np.apply_along_axis(np.gradient, 1, self.updraft_fraction, z)
 
     def mean_pz_sink(self):
-        return self.pertpress_avgp_z()+self.pertpress_fraction_z()
+        # one last term regarding the interface mean pressure is missing temporarily
+        # the missing term slightly cancels the second term <updraft_press*area_gradient>
+        return -( self.updraft_fraction * self.avgp_z() + self.updraft_dyn_pressure * self.fraction_z() )
 
     def pressure_drag(self):
         return -(self.updraft_w[:]-self.env_w[:])*abs(self.updraft_w[:]-self.env_w[:])*self.alpha_d*\
