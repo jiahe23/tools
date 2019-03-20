@@ -24,15 +24,22 @@ class pycles_pressure_diag():
     def DaiDz(self):
         return np.apply_along_axis(np.gradient, 1, self.updraft_fraction, self.z)
 
-    def mean_pz_sink(self):
+    def mean_dpdz(self):
         # one last term regarding the interface mean pressure is missing temporarily
         # the missing term slightly cancels the second term <updraft_press*area_gradient>
         output = {}
         output['dpidz'] = -self.DpiDz()
         tmp_ai = self.updraft_fraction
         tmp_ai[tmp_ai==0] = 1e-6
-        output['ai_contribution'] = -self.updraft_dyn_pressure * self.DaiDz()/tmp_ai
+        output['ai_contr'] = -self.updraft_dyn_pressure * self.DaiDz()/tmp_ai
         output['mean_sink'] = -(self.updraft_fraction*self.DpiDz() + self.updraft_dyn_pressure*self.DaiDz())/tmp_ai
+        return output
+
+    def mean_pacceleration(self):
+        output = {}
+        output['pi_contr'] = -self.updraft_fraction*self.DpiDz()
+        output['ai_contr'] = -self.updraft_dyn_pressure * self.DaiDz()
+        output['total'] = output['pi_contr'] + output['ai_contr']
         return output
 
     def pressure_drag(self):
