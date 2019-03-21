@@ -20,10 +20,12 @@ class pycles_pressure_decompose():
         self.rho0 = statsdata.groups['reference']['rho0'][:].data
 
     def DpiDz(self):
-        return np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, self.z)
+        output = np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, self.z)
+        return ua(self.statsdata).masked_by_updraft(output)
 
     def DaiDz(self):
-        return np.apply_along_axis(np.gradient, 1, self.updraft_fraction, self.z)
+        output = np.apply_along_axis(np.gradient, 1, self.updraft_fraction, self.z)
+        return ua(self.statsdata).masked_by_updraft(output)
 
     def mean_dpdz(self):
         # one last term regarding the interface mean pressure is missing temporarily
