@@ -1,6 +1,7 @@
 import numpy as np
+from updraftvar import updraft_analysis as ua
 
-class pycles_pressure_diag():
+class pycles_pressure_decompose():
     def __init__(self,statsdata,alpha_b=1.0/3,alpha_d=0.375,r_d=500):
         self.alpha_b = alpha_b
         self.alpha_d = alpha_d
@@ -49,4 +50,25 @@ class pycles_pressure_diag():
     def pressure_buoy(self):
         return -self.alpha_b*self.rho0*self.updraft_fraction*self.updraft_reletive_buoyancy
 
+class pycles_pressure_para():
+    alpha_b = np.nan
+    alpha_d = np.nan
+    r_d = np.nan
 
+    def __init__(self,statsdata,dx=50,dy=50):
+        self.statsdata = statsdata
+        self.dx = dx
+        self.dy = dy
+        self.rho0 = statsdata.groups['reference']['rho0'][:].data
+        self.updraft_fraction = statsdata.groups['profiles']['updraft_fraction'][:].data
+
+    def buoy_contr(self):
+        updraft_reletive_buoyancy = self.statsdata.groups['profiles']['updraft_b'][:].data-\
+                                    self.statsdata.groups['profiles']['buoyancy_mean'][:].data
+        output = -self.rho0 * self.updraft_fraction * updraft_reletive_buoyancy
+        return ua(self.statsdata).masked_by_updraft(output)
+
+    def drag_contr(self):
+        wdiff = self.statsdata.groups['profiles']['updraft_w'][:].data - self.statsdata.groups['profiles']['env_w'][:].data
+        output = -self.rho0 * wdiff * abs(wdiff) * np.sqrt( self.updraft_fraction )/np.sqrt( self.dx * self.dy )
+        return ua(self.statsdata).masked_by_updraft(output)
