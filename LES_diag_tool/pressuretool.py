@@ -1,5 +1,6 @@
 import numpy as np
-from updraftvar import updraft_analysis as ua
+from updraftvar import updraft_analysis as upa
+from scipy import interpolate.interp1d
 
 class pycles_pressure_decompose():
     def __init__(self,statsdata,alpha_b=1.0/3,alpha_d=0.375,r_d=500):
@@ -21,11 +22,11 @@ class pycles_pressure_decompose():
 
     def DpiDz(self):
         output = np.apply_along_axis(np.gradient, 1, self.updraft_dyn_pressure, self.z)
-        return ua(self.statsdata).masked_by_updraft(output)
+        return upa(self.statsdata).masked_by_updraft(output)
 
     def DaiDz(self):
         output = np.apply_along_axis(np.gradient, 1, self.updraft_fraction, self.z)
-        return ua(self.statsdata).masked_by_updraft(output)
+        return upa(self.statsdata).masked_by_updraft(output)
 
     def mean_dpdz(self):
         # one last term regarding the interface mean pressure is missing temporarily
@@ -63,14 +64,33 @@ class pycles_pressure_para():
         self.dy = dy
         self.rho0 = statsdata.groups['reference']['rho0'][:].data
         self.updraft_fraction = statsdata.groups['profiles']['updraft_fraction'][:].data
+        self.upa = upa(self.statsdata)
+
+    def updraft_relative_b(self):
+        output = self.statsdata.groups['profiles']['updraft_b'][:].data - \
+                 self.upa.masked_by_updraft( self.statsdata.groups['profiles']['buoyancy_mean'][:].data )
+        return self.upa.masked_by_updraft(output)
+
+    def wdiff(self):
+        output = self.statsdata.groups['profiles']['updraft_w'][:].data - \
+                 self.statsdata.groups['profiles']['env_w'][:].data
+        return self.upa.masked_by_updraft(output)
 
     def buoy_contr(self):
-        updraft_reletive_buoyancy = self.statsdata.groups['profiles']['updraft_b'][:].data-\
-                                    self.statsdata.groups['profiles']['buoyancy_mean'][:].data
-        output = -self.rho0 * self.updraft_fraction * updraft_reletive_buoyancy
-        return ua(self.statsdata).masked_by_updraft(output)
+        output = {}
+        output['dpdz'] = -self.rho0 * self.updraft_relative_b()
+        output['dwdt'] = -self.rho0 * self.updraft_fraction * self.updraft_relative_b()
+        for item in output:
+            output[item] = self.upa.masked_by_updraft(output[item])
+        return output
 
     def drag_contr(self):
-        wdiff = self.statsdata.groups['profiles']['updraft_w'][:].data - self.statsdata.groups['profiles']['env_w'][:].data
-        output = -self.rho0 * wdiff * abs(wdiff) * np.sqrt( self.updraft_fraction )/np.sqrt( self.dx * self.dy )
-        return ua(self.statsdata).masked_by_updraft(output)
+        # wdiff = self.statsdata.groups['profiles']['updraft_w'][:].data - self.statsdata.groups['profiles']['env_w'][:].data
+        output = {}
+        tmpa = self.updraft_fraction
+        tmpa[abs(self.updraft_fraction)<1e-6] = 1e-6
+        output['dpdz'] = -self.rho0 * self.wdiff() * abs(self.wdiff()) / np.sqrt( tmpa )/np.sqrt( self.dx * self.dy )
+        output['dwdt'] = -self.rho0 * self.wdiff() * abs(self.wdiff()) * np.sqrt( self.updraft_fraction )/np.sqrt( self.dx * self.dy )
+        for item in output:
+            output[item] = self.upa.masked_by_updraft(output[item])
+        return output
