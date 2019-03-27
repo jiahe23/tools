@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 class updraft_analysis():
     def __init__(self,statsdata):
