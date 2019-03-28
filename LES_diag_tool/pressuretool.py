@@ -1,6 +1,6 @@
 import numpy as np
 from updraftvar import updraft_analysis as upa
-# from scipy import interpolate.interp1d
+from scipy import interpolate
 
 class pycles_pressure_decompose():
     def __init__(self,statsdata,alpha_b=1.0/3,alpha_d=0.375,r_d=500):
