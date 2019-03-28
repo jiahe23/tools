@@ -106,6 +106,10 @@ class pycles_pressure_para():
         output = self.updraft_w - self.env_w
         return self.upa.masked_by_updraft(output,self.label)
 
+    def wdiff2(self):
+        output = (self.updraft_w - self.env_w)*(self.updraft_w - self.env_w)
+        return self.upa.masked_by_updraft(output,self.label)
+
     def buoy_contr(self):
         output = {}
         output['dpdz'] = -self.rho0 * self.updraft_relative_b()
