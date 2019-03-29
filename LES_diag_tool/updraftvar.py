@@ -28,6 +28,36 @@ class updraft_analysis():
             sys.exit('Input Must Be np.ndarray!')
         return self.masked_by_updraft(data)[tidx,:].mean(axis=0)
 
+    def cloud_top_base(self):
+        output = {}
+        cloud_info = self.statsdata.groups['profiles']['cloud_fraction'][:].data>1e-6
+        output['topidx'] = np.zeros(cloud_info.shape[0])
+        output['baseidx'] = np.zeros(cloud_info.shape[0])
+        output['heightcnt'] = np.zeros(cloud_info.shape[0])
+        for it in np.arange(cloud_info.shape[0]):
+            output['heightcnt'][it] = cloud_info[it,:].sum()
+            for iz in np.arange(cloud_info.shape[1]):
+                if cloud_info[it,iz]:
+                    output['baseidx'][it] = iz
+                    break
+            output['topidx'][it] = output['baseidx'][it]+output['heightcnt'][it]-1
+        return output
+
+    def updraft_top_base(self):
+        output = {}
+        updraft_info = self.statsdata.groups['profiles']['updraft_fraction'][:].data>1e-6
+        output['topidx'] = np.zeros(updraft_info.shape[0])
+        output['baseidx'] = np.zeros(updraft_info.shape[0])
+        output['heightcnt'] = np.zeros(updraft_info.shape[0])
+        for it in np.arange(updraft_info.shape[0]):
+            output['heightcnt'][it] = updraft_info[it,:].sum()
+            for iz in np.arange(updraft_info.shape[1]):
+                if updraft_info[it,iz]:
+                    output['baseidx'][it] = iz
+                    break
+            output['topidx'][it] = output['baseidx'][it]+output['heightcnt'][it]-1
+        return output
+
     def movingavg_time(self,data,tw,label='updraft_fraction'):
         '''
         tw is the moving average time window in seconds
