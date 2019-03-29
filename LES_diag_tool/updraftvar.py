@@ -28,6 +28,26 @@ class updraft_analysis():
             sys.exit('Input Must Be np.ndarray!')
         return self.masked_by_updraft(data)[tidx,:].mean(axis=0)
 
+    def movingavg_time(self,data,tw,label='updraft_fraction'):
+        '''
+        tw is the moving average time window in seconds
+        label is updraft_fraction as default and can be changed to cloud_fraction
+        '''
+        if not isinstance(data, np.ndarray):
+            sys.exit('Input Must Be np.ndarray!')
+        output = {}
+        t = self.statsdata.groups['timeseries']['t'][:].data
+        data = self.masked_by_updraft(data,label)
+        T_cnt = int(np.floor_divide(t.max(),tw))
+        output['data_movingavg'] = np.zeros((T_cnt,data.shape[1]))
+        output['t'] = np.zeros(T_cnt)
+        for iT in np.arange(len(output['t'])):
+            # output['t'] archive the end time of the miving avg (output['t']-tw,output['t']]
+            output['t'][iT] = t[0] + (iT+1)*tw
+            idx = [it for it in np.arange(len(t)) if ( t[it] > t[0]+iT*tw and t[it] <= t[0]+(iT+1)*tw )]
+            output['data_movingavg'][iT] = data[idx,:].mean(axis=0)
+        return output, data[idx,:], idx
+
 class vertical_rescale():
     def __init__(self,statsdata):
         self.zscale = np.arange(1,2.01,0.01)
