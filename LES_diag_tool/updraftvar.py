@@ -6,7 +6,7 @@ class updraft_analysis():
     def __init__(self,statsdata):
         self.statsdata = statsdata
 
-    def masked_by_updraft(self,data,maskedby='updraft_fraction',maskthre=1e-3):
+    def masked_by_updraft(self,data,maskedby='updraft_fraction',maskthre=1e-6):
         if not isinstance(data, np.ndarray):
             sys.exit('Input Must Be np.ndarray!')
         if np.shape(data) != np.shape(self.statsdata.groups['profiles'][maskedby]):
@@ -44,7 +44,7 @@ class vertical_rescale():
     def __norm_z(self):
         output = np.zeros_like(self.fraction_mask,dtype='float32')
         for irow in np.arange(output.shape[0]):
-            idx = [i for i in np.arange( self.z.shape[0] ) if self.fraction_mask[irow,i]>1e-3]
+            idx = [i for i in np.arange( self.z.shape[0] ) if self.fraction_mask[irow,i]>1e-6]
             if len(idx)==1:
                 output[irow,idx[0]] = 1
             elif len(idx)>1:
