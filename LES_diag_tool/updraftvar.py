@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from pandas import DataFrame as df
 from scipy import interpolate as intp
 import sys
 
@@ -76,7 +78,22 @@ class updraft_analysis():
             output['t'][iT] = t[0] + (iT+1)*tw
             idx = [it for it in np.arange(len(t)) if ( t[it] > t[0]+iT*tw and t[it] <= t[0]+(iT+1)*tw )]
             output['data_movingavg'][iT] = data[idx,:].mean(axis=0)
-        return output, data[idx,:], idx
+        return output
+
+    def data2frame(self,data,z,t,maskedby):
+        if not isinstance(data, np.ndarray):
+            sys.exit('Input Data Must Be np.ndarray!')
+        if not (data.shape==maskedby.shape):
+            sys.exit('Input Data and Mask Must Match Dimensions!')
+        zz,tt = np.meshgrid(z,t)
+        if not (zz.shape==data.shape):
+            sys.exit('Input Data Must Match Dimensions with z & t!')
+        output = df(data.reshape(len(z)*len(t),1), columns=['data'])
+        output['mask'] = maskedby.reshape(len(z)*len(t),1)
+        output['z'] = zz.reshape(len(z)*len(t),1)
+        output['t'] = tt.reshape(len(z)*len(t),1)
+        return output
+
 
 class vertical_rescale():
     def __init__(self,statsdata):
